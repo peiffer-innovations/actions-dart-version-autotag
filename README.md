@@ -20,7 +20,7 @@ jobs:
   tag:
     runs-on: ubuntu-latest
     steps:
-      - uses: theochampion/dart-auto-tag@v1.0.1
+      - uses: peiffer-innovations/actions-dart-version-autotag@v1.0.1
         with:
           token: ${{ secrets.TAG_TOKEN }}
 ```
