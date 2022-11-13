@@ -28,4 +28,4 @@ runs:
         set -e
 
         dart pub global activate -sgit https://github.com/peiffer-innovations/actions-dart-version-autotag
-        dart pub global run dart_dependency_updater:update --token ${{ inputs.token }} --path ${{ inputs.path }} --repository "${{ inputs.repository }}"
+        dart pub global run dart_version_autotag:tag --token ${{ inputs.token }} --path ${{ inputs.path }} --repository "${{ inputs.repository }}"
