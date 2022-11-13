@@ -17,6 +17,6 @@ jobs:
         with:
           flutter_package: false
 
-      - uses: peiffer-innovations/actions-dart-version-autotag@v2.0.0
+      - uses: peiffer-innovations/actions-dart-version-autotag@v2.0.1
         with:
           token: ${{ secrets.REPO_TOKEN }}
