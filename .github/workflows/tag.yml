@@ -17,6 +17,13 @@ jobs:
         with:
           flutter_package: false
 
-      - uses: peiffer-innovations/actions-dart-version-autotag@v2.0.1
-        with:
-          token: ${{ secrets.REPO_TOKEN }}
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: Update dependencies
+        shell: bash
+        run: |
+          set -e
+
+          dart pub global activate -sgit https://github.com/peiffer-innovations/actions-dart-version-autotag
+          dart pub global run dart_version_autotag:tag --token ${{ secrets.GITHUB_TOKEN }}
