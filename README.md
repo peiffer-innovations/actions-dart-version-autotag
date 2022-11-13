@@ -42,7 +42,6 @@ jobs:
 | Input   | Description                                                          |
 | -------------|-----------------------------------------------------------------|
 | `path`       | The path to the pubspec file to track (default: `.`).           |
-| `repository` | The repository to post the tag to, defaults to current.         |
 | `token`      | The GitHub access token to create tags in the repository.       |
 
 [1]: https://github.community/t5/GitHub-Actions/Github-actions-workflow-not-triggering-with-tag-push/td-p/39685
