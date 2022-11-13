@@ -1,5 +1,3 @@
-node_modules/
-
 # Miscellaneous
 *.class
 *.log
@@ -35,6 +33,7 @@ test/.test_coverage.dart
 .pub-cache/
 .pub/
 build/
+
 
 # Android related
 **/android/**/gradle-wrapper.jar

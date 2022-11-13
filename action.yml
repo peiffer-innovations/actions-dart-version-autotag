@@ -1,17 +1,31 @@
 name: 'Auto Tag Dart Versions'
 description: 'Automatically create tags when you update your pubspec.yaml version'
-author: 'theochampion'
+author: 'jpeiffer'
 inputs:
-  pubspec-path:
-    description: 'Path to the pubspec.yaml file to monitor.'
+  path:
+    description: 'Path to the directory containing the pubspec.yaml file to monitor.'
     required: false
-    default: 'pubspec.yaml'
+    default: .
+  repository:
+    description: 'The repository to use, defaults to the current repo.'
+    required: false
   token:
     description: 'The GitHub access token to allow file reading and tag creation.'
     required: true
+
 runs:
-  using: 'node12'
-  main: 'dist/index.js'
-branding:
-  icon: 'tag'
-  color: 'blue'
+  using: 'composite'
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup Dart
+      uses: dart-lang/setup-dart@v1
+
+    - name: Update dependencies
+      shell: bash
+      run: |
+        set -e
+
+        dart pub global activate -sgit https://github.com/peiffer-innovations/actions-dart-version-autotag
+        dart pub global run dart_dependency_updater:update --token ${{ inputs.token }} --path ${{ inputs.path }} --repository "${{ inputs.repository }}"
