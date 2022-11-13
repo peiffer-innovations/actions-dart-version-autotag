@@ -151,7 +151,8 @@ RepositorySlug _getRepositorySlug({
     slug = RepositorySlug.full(repo);
     _logger.info('Discovered CLI SLUG: $repo');
   } else if (Platform.environment['GITHUB_ACTION_REPOSITORY']?.isNotEmpty ==
-      true) {
+          true &&
+      Platform.environment['GITHUB_ACTION_REPOSITORY'] != '/') {
     var repo = Platform.environment['GITHUB_ACTION_REPOSITORY']!;
 
     slug = RepositorySlug.full(repo);
