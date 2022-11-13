@@ -10,6 +10,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: peiffer-innovations/actions-dart-version-autotag@v1.0.0
+      - uses: peiffer-innovations/actions-dart-version-autotag@v10.0
         with:
           token: ${{ secrets.REPO_TOKEN }}

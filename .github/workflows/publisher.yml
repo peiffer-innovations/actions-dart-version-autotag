@@ -1,0 +1,21 @@
+name: Flutter Publisher
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Validate
+        uses: peiffer-innovations/actions-flutter-validate@v1.1.3
+        with:
+          flutter_package: false
+
+      - uses: peiffer-innovations/actions-dart-version-autotag@v1.0.1
+        with:
+          token: ${{ secrets.REPO_TOKEN }}
