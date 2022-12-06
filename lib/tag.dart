@@ -20,7 +20,7 @@ Future<void> main(List<String>? args) async {
     }
   });
 
-  var exitCode = 0;
+  final exitCode = 0;
 
   final parser = ArgParser();
   parser.addFlag(
@@ -60,7 +60,7 @@ Future<void> main(List<String>? args) async {
 
   final slug = _getRepositorySlug(repository: parsed['repository']);
   final token = parsed['token'];
-  var gh = GitHub(auth: Authentication.withToken(token));
+  final gh = GitHub(auth: Authentication.withToken(token));
 
   final tags = await gh.repositories.listTags(slug).toList();
 
@@ -146,31 +146,31 @@ RepositorySlug _getRepositorySlug({
   RepositorySlug? slug;
 
   if (repository != null && repository.trim().isNotEmpty) {
-    var repo = repository;
+    final repo = repository;
 
     slug = RepositorySlug.full(repo);
     _logger.info('Discovered CLI SLUG: $repo');
   } else if (Platform.environment['GITHUB_ACTION_REPOSITORY']?.isNotEmpty ==
       true) {
-    var repo = Platform.environment['GITHUB_ACTION_REPOSITORY']!;
+    final repo = Platform.environment['GITHUB_ACTION_REPOSITORY']!;
 
     slug = RepositorySlug.full(repo);
     _logger.info('Discovered ENV SLUG: $repo');
   } else {
-    var ghResult = Process.runSync(
+    final ghResult = Process.runSync(
       'git',
       ['remote', 'show', 'origin'],
     );
-    var ghOutput = ghResult.stdout;
+    final ghOutput = ghResult.stdout;
 
-    var regex = RegExp(
+    final regex = RegExp(
       r'Push[^:]*:[^:]*:(?<org>[^\/]*)\/(?<repo>[^\n\.\/]*)',
     );
-    var matches = regex.allMatches(ghOutput.toString());
+    final matches = regex.allMatches(ghOutput.toString());
 
     for (var match in matches) {
-      var org = match.namedGroup('org');
-      var repo = match.namedGroup('repo');
+      final org = match.namedGroup('org');
+      final repo = match.namedGroup('repo');
 
       if (org != null && repo != null) {
         slug = RepositorySlug(org, repo);
