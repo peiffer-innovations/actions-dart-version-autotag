@@ -4,7 +4,7 @@ version: '2.0.0'
 homepage: 'https://github.com/peiffer-innovations/actions-dart-version-autotag'
 
 environment:
-  sdk: '>=2.19.0 <4.0.0'
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   args: '^2.3.1'
@@ -13,7 +13,7 @@ dependencies:
   intl: '^0.18.0'
   json_class: '^2.1.2+11'
   logging: '^1.1.0'
-  meta: '^1.8.0'
+  meta: '^1.9.0'
   pub_api_client: '^2.2.1'
   pub_semver: '^2.1.1'
   yaml: '^3.1.1'
