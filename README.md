@@ -32,17 +32,18 @@ jobs:
   tag:
     runs-on: ubuntu-latest
     steps:
-      - uses: peiffer-innovations/actions-dart-version-autotag@v1
+      - uses: peiffer-innovations/actions-dart-version-autotag@v2
         with:
           token: ${{ secrets.TAG_TOKEN }}
 ```
 
 ## Inputs
 
-| Input   | Description                                                          |
-| -------------|-----------------------------------------------------------------|
-| `path`       | The path to the pubspec file to track (default: `.`).           |
-| `token`      | The GitHub access token to create tags in the repository.       |
+| Input        | Description                                                                      |
+|--------------|----------------------------------------------------------------------------------|
+| `overwrite`  | Defaults to `true`.  Set to `false` to abort if the full version already exists. |
+| `path`       | The path to the pubspec file to track (default: `.`).                            |
+| `token`      | The GitHub access token to create tags in the repository.                        |
 
 [1]: https://github.community/t5/GitHub-Actions/Github-actions-workflow-not-triggering-with-tag-push/td-p/39685
 [2]: https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line

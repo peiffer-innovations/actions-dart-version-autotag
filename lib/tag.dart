@@ -23,16 +23,16 @@ Future<void> main(List<String>? args) async {
   final exitCode = 0;
 
   final parser = ArgParser();
-  parser.addFlag(
-    'dry-run',
+  parser.addFlag('dry-run');
+  parser.addOption(
+    'overwrite',
+    defaultsTo: 'true',
   );
   parser.addOption(
     'path',
     defaultsTo: '.',
   );
-  parser.addOption(
-    'repository',
-  );
+  parser.addOption('repository');
   parser.addOption(
     'token',
     mandatory: true,
@@ -42,6 +42,7 @@ Future<void> main(List<String>? args) async {
   final path = parsed['path'];
 
   final dryRun = parsed['dry-run'] == true;
+  final overwrite = parsed['overwrite']?.toString().toLowerCase() == 'true';
   final pubspec = File('$path/pubspec.yaml');
 
   if (!pubspec.existsSync()) {
@@ -72,6 +73,7 @@ Future<void> main(List<String>? args) async {
   await _createTag(
     dryRun: dryRun,
     gh: gh,
+    overwrite: overwrite,
     sha: sha,
     slug: slug,
     tags: tags,
@@ -88,17 +90,29 @@ Future<void> main(List<String>? args) async {
     version: major,
   );
 
+  final minor = version.split('.')[1];
+  await _createTag(
+    dryRun: dryRun,
+    gh: gh,
+    sha: sha,
+    slug: slug,
+    tags: tags,
+    version: minor,
+  );
+
   exit(exitCode);
 }
 
-Future<void> _createTag({
+Future<bool> _createTag({
   required bool dryRun,
   required GitHub gh,
+  bool overwrite = true,
   required String sha,
   required RepositorySlug slug,
   required List<Tag> tags,
   required String version,
 }) async {
+  var result = false;
   Tag? tag;
   for (var t in tags) {
     if (t.name == 'v$version') {
@@ -108,7 +122,7 @@ Future<void> _createTag({
     }
   }
 
-  if (!dryRun) {
+  if (!dryRun && (overwrite || tag == null)) {
     if (tag != null) {
       final response = await gh.request(
         'delete',
@@ -137,7 +151,10 @@ Future<void> _createTag({
     }
 
     _logger.info('Created Tag: [v$version]');
+    result = true;
   }
+
+  return result;
 }
 
 RepositorySlug _getRepositorySlug({
