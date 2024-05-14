@@ -97,7 +97,7 @@ Future<void> main(List<String>? args) async {
     sha: sha,
     slug: slug,
     tags: tags,
-    version: minor,
+    version: '$major.$minor',
   );
 
   exit(exitCode);
