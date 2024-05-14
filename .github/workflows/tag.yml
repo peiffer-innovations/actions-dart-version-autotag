@@ -15,7 +15,7 @@ jobs:
       - name: Validate
         uses: peiffer-innovations/actions-flutter-validate@v1
 
-      - name: Update dependencies
+      - name: Create Tag
         shell: bash
         run: |
           set -e
