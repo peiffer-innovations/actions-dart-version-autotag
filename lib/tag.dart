@@ -1,8 +1,11 @@
+// ignore_for_file: avoid_print
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:dart_version_autotag/changelog_scanner.dart';
 import 'package:github/github.dart';
 import 'package:logging/logging.dart';
 import 'package:yaml/yaml.dart';
@@ -20,9 +23,11 @@ Future<void> main(List<String>? args) async {
     }
   });
 
-  final exitCode = 0;
-
   final parser = ArgParser();
+  parser.addOption(
+    'changelog',
+    defaultsTo: 'true',
+  );
   parser.addFlag('dry-run');
   parser.addOption(
     'overwrite',
@@ -41,12 +46,24 @@ Future<void> main(List<String>? args) async {
   final parsed = parser.parse(args ?? []);
   final path = parsed['path'];
 
+  final useChangelog = parsed['changelog']?.toString().toLowerCase() == 'true';
   final dryRun = parsed['dry-run'] == true;
   final overwrite = parsed['overwrite']?.toString().toLowerCase() == 'true';
   final pubspec = File('$path/pubspec.yaml');
 
   if (!pubspec.existsSync()) {
     throw Exception('Unable to load [$path/pubspec.yaml] file.');
+  }
+
+  String? changelog;
+
+  if (useChangelog) {
+    final file = File('$path/CHANGELOG.md');
+    if (!file.existsSync()) {
+      throw Exception('Unable to load [$path/CHANGELOG.md] file.');
+    }
+
+    changelog = file.readAsStringSync();
   }
 
   final yaml = loadYamlDocument(pubspec.readAsStringSync());
@@ -71,6 +88,7 @@ Future<void> main(List<String>? args) async {
   final sha = branch.commit!.sha!;
 
   await _createTag(
+    changelog: changelog,
     dryRun: dryRun,
     gh: gh,
     overwrite: overwrite,
@@ -82,6 +100,7 @@ Future<void> main(List<String>? args) async {
 
   final major = version.split('.').first;
   await _createTag(
+    changelog: changelog,
     dryRun: dryRun,
     gh: gh,
     sha: sha,
@@ -92,6 +111,7 @@ Future<void> main(List<String>? args) async {
 
   final minor = version.split('.')[1];
   await _createTag(
+    changelog: changelog,
     dryRun: dryRun,
     gh: gh,
     sha: sha,
@@ -104,6 +124,7 @@ Future<void> main(List<String>? args) async {
 }
 
 Future<bool> _createTag({
+  String? changelog,
   required bool dryRun,
   required GitHub gh,
   bool overwrite = true,
@@ -114,12 +135,31 @@ Future<bool> _createTag({
 }) async {
   var result = false;
   Tag? tag;
+
   for (var t in tags) {
     if (t.name == 'v$version') {
       tag = t;
       _logger.info('Tag exists: ${t.name}');
       break;
     }
+  }
+
+  final cl = changelog;
+  String? changes;
+  if (cl != null) {
+    _logger.info('Looking for changes for tag: $version');
+
+    final scanner = ChangelogScanner(cl);
+    changes = '''
+Release
+
+${scanner.getChanges(version)}
+''';
+
+    _logger.info('''
+[CHANGELOG]: $version
+
+$changes''');
   }
 
   if (!dryRun && (overwrite || tag == null)) {
@@ -134,19 +174,51 @@ Future<bool> _createTag({
       _logger.info('Deleted Tag: [v$version]');
     }
 
-    final response = await gh.request(
+    var response = await gh.request(
+      'post',
+      '/repos/${slug.owner}/${slug.name}/git/tags',
+      body: utf8.encode(
+        json.encode(
+          {
+            if (changes != null) 'message': changes,
+            'object': sha,
+            'tag': 'v$version',
+            'type': 'commit',
+          },
+        ),
+      ),
+    );
+    if (response.statusCode >= 300) {
+      _logger.severe('''Error on response:
+Code: ${response.statusCode}
+Body:
+${response.body}
+''');
+      throw Exception('Unable to get response for creating tag.');
+    }
+
+    _logger.info('Created Ref for Tag: [v$version]');
+
+    final responseBody = json.decode(response.body);
+    final tagSha = responseBody['sha'];
+    response = await gh.request(
       'post',
       '/repos/${slug.owner}/${slug.name}/git/refs',
       body: utf8.encode(
         json.encode(
           {
             'ref': 'refs/tags/v$version',
-            'sha': sha,
+            'sha': tagSha,
           },
         ),
       ),
     );
     if (response.statusCode >= 300) {
+      _logger.severe('''Error on response:
+Code: ${response.statusCode}
+Body:
+${response.body}
+''');
       throw Exception('Unable to get response for creating tag.');
     }
 
