@@ -2,6 +2,18 @@ name: 'Auto Tag Dart Versions'
 description: 'Automatically create tags when you update your pubspec.yaml version'
 author: 'jpeiffer'
 inputs:
+  changelog:
+    description: 'Set to false to skip scanning the changelog to apply the message.'
+    required: false
+    default: 'true'
+  major:
+    description: 'Set to false to skip creating the tag for the major version.'
+    required: false
+    default: 'true'
+  minor:
+    description: 'Set to false to skip creating the tag for the minor version.'
+    required: false
+    default: 'true'
   overwrite:
     description: 'Set to false to abort if the existing semver tag exists.'
     required: false
@@ -29,4 +41,4 @@ runs:
         set -e
 
         dart pub global activate -sgit https://github.com/peiffer-innovations/actions-dart-version-autotag
-        dart pub global run dart_version_autotag:tag --token ${{ inputs.token }} --path ${{ inputs.path }} --repository ${{ github.repository }} --overwrite ${{inputs.overwrite}}
+        dart pub global run dart_version_autotag:tag --token ${{ inputs.token }} --path ${{ inputs.path }} --repository ${{ github.repository }} --changelog ${{inputs.changelog}} --major ${{inputs.major}} --minor ${{inputs.minor}} --overwrite ${{inputs.overwrite}}

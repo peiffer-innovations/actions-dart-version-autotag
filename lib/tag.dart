@@ -28,6 +28,14 @@ Future<void> main(List<String>? args) async {
     'changelog',
     defaultsTo: 'true',
   );
+  parser.addOption(
+    'major',
+    defaultsTo: 'true',
+  );
+  parser.addOption(
+    'minor',
+    defaultsTo: 'true',
+  );
   parser.addFlag('dry-run');
   parser.addOption(
     'overwrite',
@@ -40,13 +48,15 @@ Future<void> main(List<String>? args) async {
   parser.addOption('repository');
   parser.addOption(
     'token',
-    mandatory: true,
+    defaultsTo: Platform.environment['GITHUB_TOKEN'],
   );
 
   final parsed = parser.parse(args ?? []);
   final path = parsed['path'];
 
   final useChangelog = parsed['changelog']?.toString().toLowerCase() == 'true';
+  final useMajor = parsed['major']?.toString().toLowerCase() == 'true';
+  final useMinor = parsed['minor']?.toString().toLowerCase() == 'true';
   final dryRun = parsed['dry-run'] == true;
   final overwrite = parsed['overwrite']?.toString().toLowerCase() == 'true';
   final pubspec = File('$path/pubspec.yaml');
@@ -77,17 +87,36 @@ Future<void> main(List<String>? args) async {
   }
 
   final slug = _getRepositorySlug(repository: parsed['repository']);
-  final token = parsed['token'];
+  final token = parsed['token']?.toString();
+  if (token == null || token.isEmpty) {
+    throw Exception('Unable to find a GitHub token.');
+  }
+
+  final options = {
+    'changelog': useChangelog,
+    'dryRun': dryRun,
+    'major': useMajor,
+    'minor': useMinor,
+    'overwrite': overwrite,
+    'path': path,
+    'slug': slug,
+    'version': version,
+  };
+  _logger.info('Options:');
+  for (var entry in options.entries) {
+    _logger.info('  * [${entry.key}]: ${entry.value}');
+  }
+  _logger.info('');
+
   final gh = GitHub(auth: Authentication.withToken(token));
 
   final tags = await gh.repositories.listTags(slug).toList();
-
   final repo = await gh.repositories.getRepository(slug);
 
   final branch = await gh.repositories.getBranch(slug, repo.defaultBranch);
   final sha = branch.commit!.sha!;
 
-  await _createTag(
+  final tagCreated = await _createTag(
     changelog: changelog,
     dryRun: dryRun,
     gh: gh,
@@ -99,26 +128,30 @@ Future<void> main(List<String>? args) async {
   );
 
   final major = version.split('.').first;
-  await _createTag(
-    changelog: changelog,
-    dryRun: dryRun,
-    gh: gh,
-    sha: sha,
-    slug: slug,
-    tags: tags,
-    version: major,
-  );
+  if (tagCreated && useMajor) {
+    await _createTag(
+      changelog: changelog,
+      dryRun: dryRun,
+      gh: gh,
+      sha: sha,
+      slug: slug,
+      tags: tags,
+      version: major,
+    );
+  }
 
-  final minor = version.split('.')[1];
-  await _createTag(
-    changelog: changelog,
-    dryRun: dryRun,
-    gh: gh,
-    sha: sha,
-    slug: slug,
-    tags: tags,
-    version: '$major.$minor',
-  );
+  if (tagCreated && useMinor) {
+    final minor = version.split('.')[1];
+    await _createTag(
+      changelog: changelog,
+      dryRun: dryRun,
+      gh: gh,
+      sha: sha,
+      slug: slug,
+      tags: tags,
+      version: '$major.$minor',
+    );
+  }
 
   exit(exitCode);
 }
@@ -144,86 +177,93 @@ Future<bool> _createTag({
     }
   }
 
-  final cl = changelog;
-  String? changes;
-  if (cl != null) {
-    _logger.info('Looking for changes for tag: $version');
+  if (!overwrite && tag != null) {
+    _logger.info('Aborting because tag exists and overwrite is false.');
+  } else {
+    final cl = changelog;
+    String? changes;
+    if (cl != null) {
+      _logger.info('Looking for changes for tag: $version');
 
-    final scanner = ChangelogScanner(cl);
-    changes = '''
+      final scanner = ChangelogScanner(cl);
+      changes = '''
 Release
 
 ${scanner.getChanges(version)}
 ''';
 
-    _logger.info('''
+      _logger.info('''
 [CHANGELOG]: $version
 
 $changes''');
-  }
+    }
 
-  if (!dryRun && (overwrite || tag == null)) {
-    if (tag != null) {
-      final response = await gh.request(
-        'delete',
-        '/repos/${slug.owner}/${slug.name}/git/refs/tags/${tag.name}',
+    if (dryRun) {
+      result = true;
+      _logger.info('Dry Run Complete: [v$version]');
+    } else {
+      if (tag != null) {
+        final response = await gh.request(
+          'delete',
+          '/repos/${slug.owner}/${slug.name}/git/refs/tags/${tag.name}',
+        );
+        if (response.statusCode >= 300) {
+          throw Exception('Unable to get response for deleting tag.');
+        }
+        _logger.info('Deleted Tag: [v$version]');
+      }
+
+      var response = await gh.request(
+        'post',
+        '/repos/${slug.owner}/${slug.name}/git/tags',
+        body: utf8.encode(
+          json.encode(
+            {
+              if (changes != null) 'message': changes,
+              'object': sha,
+              'tag': 'v$version',
+              'type': 'commit',
+            },
+          ),
+        ),
       );
       if (response.statusCode >= 300) {
-        throw Exception('Unable to get response for deleting tag.');
+        _logger.severe('''Error on response:
+Code: ${response.statusCode}
+Body:
+${response.body}
+''');
+        throw Exception('Unable to get response for creating tag.');
       }
-      _logger.info('Deleted Tag: [v$version]');
-    }
 
-    var response = await gh.request(
-      'post',
-      '/repos/${slug.owner}/${slug.name}/git/tags',
-      body: utf8.encode(
-        json.encode(
-          {
-            if (changes != null) 'message': changes,
-            'object': sha,
-            'tag': 'v$version',
-            'type': 'commit',
-          },
+      _logger.info('Created Ref for Tag: [v$version]');
+
+      final responseBody = json.decode(response.body);
+      final tagSha = responseBody['sha'];
+      response = await gh.request(
+        'post',
+        '/repos/${slug.owner}/${slug.name}/git/refs',
+        body: utf8.encode(
+          json.encode(
+            {
+              'ref': 'refs/tags/v$version',
+              'sha': tagSha,
+            },
+          ),
         ),
-      ),
-    );
-    if (response.statusCode >= 300) {
-      _logger.severe('''Error on response:
+      );
+      if (response.statusCode >= 300) {
+        _logger.severe('''Error on response:
 Code: ${response.statusCode}
 Body:
 ${response.body}
 ''');
-      throw Exception('Unable to get response for creating tag.');
+        throw Exception('Unable to get response for creating tag.');
+      }
+
+      _logger.info('Created Tag: [v$version]');
+      result = true;
     }
-
-    _logger.info('Created Ref for Tag: [v$version]');
-
-    final responseBody = json.decode(response.body);
-    final tagSha = responseBody['sha'];
-    response = await gh.request(
-      'post',
-      '/repos/${slug.owner}/${slug.name}/git/refs',
-      body: utf8.encode(
-        json.encode(
-          {
-            'ref': 'refs/tags/v$version',
-            'sha': tagSha,
-          },
-        ),
-      ),
-    );
-    if (response.statusCode >= 300) {
-      _logger.severe('''Error on response:
-Code: ${response.statusCode}
-Body:
-${response.body}
-''');
-      throw Exception('Unable to get response for creating tag.');
-    }
-
-    _logger.info('Created Tag: [v$version]');
-    result = true;
   }
 
   return result;
