@@ -5,6 +5,8 @@
 **Table of Contents**
 
 - [Introduction](#introduction)
+- [CHANGELOG](#changelog)
+  - [Version Detection](#version-detection)
 - [Usage](#usage)
 - [Inputs](#inputs)
 
