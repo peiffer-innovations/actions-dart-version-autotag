@@ -69,7 +69,7 @@ Now let's say `1.1.2` is the version that triggered the action.  The following m
 * Shiny new feature
 ```
 
-**`v1`
+**`v1`**
 ```
 ## 1.1.2
 
