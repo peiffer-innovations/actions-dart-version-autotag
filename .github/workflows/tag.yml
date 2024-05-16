@@ -5,6 +5,12 @@ on:
   push:
     branches: [main]
 
+permissions:
+  # Only need to read contents
+  contents: read
+  # Require writing security events to upload SARIF file to security tab
+  security-events: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
