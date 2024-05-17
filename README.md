@@ -138,7 +138,5 @@ jobs:
 | `minor`      | Set to `false` to prevent creating / updating the minor tag (default `true`). |
 | `overwrite`  | Set to `false` to abort if the full version already exists (default `true`).  |
 | `path`       | The path to the pubspec file to track (default: `.`).                         |
+| `prefix`     | The prefix to place before the version number in the tag (default: `v`).      |
 | `token`      | The GitHub access token to create tags in the repository.                     |
-
-[1]: https://github.community/t5/GitHub-Actions/Github-actions-workflow-not-triggering-with-tag-push/td-p/39685
-[2]: https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line

@@ -22,6 +22,10 @@ inputs:
     description: 'Path to the directory containing the pubspec.yaml file to monitor.'
     required: false
     default: .
+  prefix:
+    description: 'Prefix to apply to the version number'
+    required: false
+    default: 'v'
   token:
     description: 'The GitHub access token to allow file reading and tag creation.'
     required: true
@@ -41,4 +45,4 @@ runs:
         set -e
 
         dart pub global activate -sgit https://github.com/peiffer-innovations/actions-dart-version-autotag
-        dart pub global run dart_version_autotag:tag --token ${{ inputs.token }} --path ${{ inputs.path }} --repository ${{ github.repository }} --changelog ${{inputs.changelog}} --major ${{inputs.major}} --minor ${{inputs.minor}} --overwrite ${{inputs.overwrite}}
+        dart pub global run dart_version_autotag:tag --token ${{ inputs.token }} --path ${{ inputs.path }} --prefix "${{ inputs.prefix }}" --repository ${{ github.repository }} --changelog ${{inputs.changelog}} --major ${{inputs.major}} --minor ${{inputs.minor}} --overwrite ${{inputs.overwrite}}

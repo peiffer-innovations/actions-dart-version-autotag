@@ -45,9 +45,14 @@ Future<void> main(List<String>? args) async {
     'path',
     defaultsTo: '.',
   );
+  parser.addOption(
+    'prefix',
+    defaultsTo: 'v',
+  );
   parser.addOption('repository');
   parser.addOption(
     'token',
+    abbr: 't',
     defaultsTo: Platform.environment['GITHUB_TOKEN'],
   );
 
@@ -59,6 +64,7 @@ Future<void> main(List<String>? args) async {
   final useMinor = parsed['minor']?.toString().toLowerCase() == 'true';
   final dryRun = parsed['dry-run'] == true;
   final overwrite = parsed['overwrite']?.toString().toLowerCase() == 'true';
+  final prefix = parsed['prefix'];
   final pubspec = File('$path/pubspec.yaml');
 
   if (!pubspec.existsSync()) {
@@ -121,6 +127,7 @@ Future<void> main(List<String>? args) async {
     dryRun: dryRun,
     gh: gh,
     overwrite: overwrite,
+    prefix: prefix,
     sha: sha,
     slug: slug,
     tags: tags,
@@ -133,6 +140,7 @@ Future<void> main(List<String>? args) async {
       changelog: changelog,
       dryRun: dryRun,
       gh: gh,
+      prefix: prefix,
       sha: sha,
       slug: slug,
       tags: tags,
@@ -146,6 +154,7 @@ Future<void> main(List<String>? args) async {
       changelog: changelog,
       dryRun: dryRun,
       gh: gh,
+      prefix: prefix,
       sha: sha,
       slug: slug,
       tags: tags,
@@ -161,6 +170,7 @@ Future<bool> _createTag({
   required bool dryRun,
   required GitHub gh,
   bool overwrite = true,
+  required String prefix,
   required String sha,
   required RepositorySlug slug,
   required List<Tag> tags,
@@ -168,9 +178,10 @@ Future<bool> _createTag({
 }) async {
   var result = false;
   Tag? tag;
+  final tagName = '$prefix$version';
 
   for (var t in tags) {
-    if (t.name == 'v$version') {
+    if (t.name == tagName) {
       tag = t;
       _logger.info('Tag exists: ${t.name}');
       break;
@@ -183,7 +194,7 @@ Future<bool> _createTag({
     final cl = changelog;
     String? changes;
     if (cl != null) {
-      _logger.info('Looking for changes for tag: $version');
+      _logger.info('Looking for changes for tag: $tagName');
 
       final scanner = ChangelogScanner(cl);
       changes = '''
@@ -200,7 +211,7 @@ $changes''');
 
     if (dryRun) {
       result = true;
-      _logger.info('Dry Run Complete: [v$version]');
+      _logger.info('Dry Run Complete: [$tagName]');
     } else {
       if (tag != null) {
         final response = await gh.request(
@@ -210,7 +221,7 @@ $changes''');
         if (response.statusCode >= 300) {
           throw Exception('Unable to get response for deleting tag.');
         }
-        _logger.info('Deleted Tag: [v$version]');
+        _logger.info('Deleted Tag: [$tagName]');
       }
 
       var response = await gh.request(
@@ -221,7 +232,7 @@ $changes''');
             {
               if (changes != null) 'message': changes,
               'object': sha,
-              'tag': 'v$version',
+              'tag': tagName,
               'type': 'commit',
             },
           ),
@@ -236,7 +247,7 @@ ${response.body}
         throw Exception('Unable to get response for creating tag.');
       }
 
-      _logger.info('Created Ref for Tag: [v$version]');
+      _logger.info('Created Ref for Tag: [$tagName]');
 
       final responseBody = json.decode(response.body);
       final tagSha = responseBody['sha'];
@@ -246,7 +257,7 @@ ${response.body}
         body: utf8.encode(
           json.encode(
             {
-              'ref': 'refs/tags/v$version',
+              'ref': 'refs/tags/$tagName',
               'sha': tagSha,
             },
           ),
@@ -261,7 +272,7 @@ ${response.body}
         throw Exception('Unable to get response for creating tag.');
       }
 
-      _logger.info('Created Tag: [v$version]');
+      _logger.info('Created Tag: [$tagName]');
       result = true;
     }
   }

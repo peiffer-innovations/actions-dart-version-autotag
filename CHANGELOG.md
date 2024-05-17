@@ -1,3 +1,8 @@
+## [2.3.2] - May 17th, 2024
+
+* Added prefix option to change from the default of "v".
+
+
 ## [2.3.1] - May 15th, 2024
 
 * Updated README
