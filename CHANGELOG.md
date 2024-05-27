@@ -1,3 +1,8 @@
+## [2.3.3] - May 17th, 2024
+
+* Added prefix to logged output.
+
+
 ## [2.3.2] - May 17th, 2024
 
 * Added prefix option to change from the default of "v".

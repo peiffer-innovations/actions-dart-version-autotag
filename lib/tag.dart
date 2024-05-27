@@ -105,6 +105,7 @@ Future<void> main(List<String>? args) async {
     'minor': useMinor,
     'overwrite': overwrite,
     'path': path,
+    'prefix': prefix,
     'slug': slug,
     'version': version,
   };
