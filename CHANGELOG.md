@@ -1,3 +1,8 @@
+## [2.3.3+1] - June 4, 2024
+
+* Automated dependency updates
+
+
 ## [2.3.3] - May 17th, 2024
 
 * Added prefix to logged output.
