@@ -1,3 +1,7 @@
+## [2.3.3+5] - September 19, 2024
+
+* Default message when changelog is set to false
+
 ## [2.3.3+4] - July 23, 2024
 
 * Automated dependency updates

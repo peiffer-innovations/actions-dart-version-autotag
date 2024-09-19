@@ -208,6 +208,8 @@ ${scanner.getChanges(version)}
 [CHANGELOG]: $version
 
 $changes''');
+    } else {
+      changes = 'Release $version';
     }
 
     if (dryRun) {
@@ -231,7 +233,7 @@ $changes''');
         body: utf8.encode(
           json.encode(
             {
-              if (changes != null) 'message': changes,
+              'message': changes,
               'object': sha,
               'tag': tagName,
               'type': 'commit',
