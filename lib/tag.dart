@@ -208,6 +208,8 @@ ${scanner.getChanges(version)}
 [CHANGELOG]: $version
 
 $changes''');
+    }else{
+      changes = 'Release $version';
     }
 
     if (dryRun) {
