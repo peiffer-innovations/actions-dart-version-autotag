@@ -140,3 +140,4 @@ jobs:
 | `path`       | The path to the pubspec file to track (default: `.`).                         |
 | `prefix`     | The prefix to place before the version number in the tag (default: `v`).      |
 | `token`      | The GitHub access token to create tags in the repository.                     |
+| `branch`     | The target branch from which the tag will be created.                         |
