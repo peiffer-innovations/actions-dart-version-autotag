@@ -55,6 +55,10 @@ Future<void> main(List<String>? args) async {
     abbr: 't',
     defaultsTo: Platform.environment['GITHUB_TOKEN'],
   );
+  parser.addOption(
+    'branch',
+    defaultsTo: null,
+  );
 
   final parsed = parser.parse(args ?? []);
   final path = parsed['path'];
@@ -65,6 +69,7 @@ Future<void> main(List<String>? args) async {
   final dryRun = parsed['dry-run'] == true;
   final overwrite = parsed['overwrite']?.toString().toLowerCase() == 'true';
   final prefix = parsed['prefix'];
+  var branchName = parsed['branch'] as String? ?? '';
   final pubspec = File('$path/pubspec.yaml');
 
   if (!pubspec.existsSync()) {
@@ -99,6 +104,7 @@ Future<void> main(List<String>? args) async {
   }
 
   final options = {
+    'branch': branchName,
     'changelog': useChangelog,
     'dryRun': dryRun,
     'major': useMajor,
@@ -119,8 +125,8 @@ Future<void> main(List<String>? args) async {
 
   final tags = await gh.repositories.listTags(slug).toList();
   final repo = await gh.repositories.getRepository(slug);
-
-  final branch = await gh.repositories.getBranch(slug, repo.defaultBranch);
+  branchName = branchName.isNotEmpty ? branchName : repo.defaultBranch;
+  final branch = await gh.repositories.getBranch(slug, branchName);
   final sha = branch.commit!.sha!;
 
   final tagCreated = await _createTag(

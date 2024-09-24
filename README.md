@@ -133,6 +133,7 @@ jobs:
 
 | Input        | Description                                                                   |
 |--------------|-------------------------------------------------------------------------------|
+| `branch`     | The target branch from which the tag will be created.                         |
 | `changelog`  | Set to `false` to ignore the changelog description (default `true`).          |
 | `major`      | Set to `false` to prevent creating / updating the major tag (default `true`). |
 | `minor`      | Set to `false` to prevent creating / updating the minor tag (default `true`). |

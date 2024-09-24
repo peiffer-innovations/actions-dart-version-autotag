@@ -1,3 +1,7 @@
+## [2.3.4] - September 24, 2024
+
+* Ability to specify target branch to tag
+
 ## [2.3.3+5] - September 19, 2024
 
 * Default message when changelog is set to false

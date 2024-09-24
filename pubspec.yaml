@@ -1,6 +1,6 @@
 name: 'dart_version_autotag'
 description: 'A package that to scan the pubspec.yaml file and automatically create or update a tag in git for it.'
-version: '2.3.3+5'
+version: '2.3.4'
 homepage: 'https://github.com/peiffer-innovations/actions-dart-version-autotag'
 
 environment: 
