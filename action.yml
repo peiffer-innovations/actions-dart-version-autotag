@@ -29,6 +29,9 @@ inputs:
   token:
     description: 'The GitHub access token to allow file reading and tag creation.'
     required: true
+  branch:
+    description: 'The target branch from which the tag will be created.'
+    required: false
 
 runs:
   using: 'composite'
@@ -45,4 +48,4 @@ runs:
         set -e
 
         dart pub global activate -sgit https://github.com/peiffer-innovations/actions-dart-version-autotag
-        dart pub global run dart_version_autotag:tag --token ${{ inputs.token }} --path ${{ inputs.path }} --prefix "${{ inputs.prefix }}" --repository ${{ github.repository }} --changelog ${{inputs.changelog}} --major ${{inputs.major}} --minor ${{inputs.minor}} --overwrite ${{inputs.overwrite}}
+        dart pub global run dart_version_autotag:tag --token ${{ inputs.token }} --path ${{ inputs.path }} --prefix "${{ inputs.prefix }}" --repository ${{ github.repository }} --changelog ${{inputs.changelog}} --major ${{inputs.major}} --minor ${{inputs.minor}} --overwrite ${{inputs.overwrite}} --branch ${{inputs.branch}}

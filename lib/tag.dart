@@ -113,6 +113,7 @@ Future<void> main(List<String>? args) async {
     'prefix': prefix,
     'slug': slug,
     'version': version,
+    if (branchName != null) 'branch': branchName,
   };
   _logger.info('Options:');
   for (var entry in options.entries) {
