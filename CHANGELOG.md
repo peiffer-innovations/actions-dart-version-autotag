@@ -1,3 +1,8 @@
+## [2.3.4+1] - October 1, 2024
+
+* Automated dependency updates
+
+
 ## [2.3.4] - September 24, 2024
 
 * Ability to specify target branch to tag
